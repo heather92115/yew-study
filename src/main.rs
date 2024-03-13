@@ -1,13 +1,12 @@
 #![recursion_limit = "1024"]
 
 use yew::prelude::*;
-use yew_router::components::RouterAnchor;
 use yew_router::prelude::*;
 
 mod pages;
 mod sl;
 
-use pages::{home::Home, study::Study};
+use pages::{home::Home, study::StudyProps};
 struct App;
 
 #[derive(Switch, Debug, Clone, PartialEq)]
@@ -35,7 +34,6 @@ impl Component for App {
     }
 
     fn view(&self) -> Html {
-        type Anchor = RouterAnchor<AppRoute>;
 
         html! {
             <>
@@ -45,21 +43,12 @@ impl Component for App {
                 <Router<AppRoute, ()>
                     render = Router::render(|switch: AppRoute| {
                         match switch {
-                            AppRoute::Study => html!{<Study/>},
+                            AppRoute::Study => html!{<StudyProps/>},
                             AppRoute::Index => html!{<Home/>},
                         }
                     })
                 />
                 </main>
-                <div>
-                    <Anchor classes="navbar-item" route=AppRoute::Index>
-                      { "Home" }
-                      </Anchor>
-                      <Anchor classes="navbar-item" route=AppRoute::Study>
-                      { "Study" }
-                    </Anchor>
-
-                </div>
             </div>
 
             </>

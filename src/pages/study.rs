@@ -1,24 +1,34 @@
+use std::vec::IntoIter;
 use wasm_bindgen_futures::spawn_local;
 use yew::{Component, ComponentLink, html, Html, ShouldRender};
+use yew_router::components::RouterAnchor;
+use crate::AppRoute;
 
-use crate::sl::study::fetch_vocab_study_list;
+use crate::sl::study::{Challenge, fetch_vocab_study_list};
 
-pub struct Study {
-    list: String,
+#[derive(Clone)]
+pub struct StudyProps {
+    iterator: IntoIter<Challenge>,
+    challenge: Challenge,
+    answer: String,
     link: ComponentLink<Self>,
 }
 
 pub enum Msg {
-    UpdateList(String),
+    UpdateList(Vec<Challenge>),
+    CheckAnswer(String)
 }
 
-impl Component for Study {
+impl Component for StudyProps {
     type Message = Msg;
+
     type Properties = ();
 
     fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
         Self {
-            list: String::new(),
+            iterator: Vec::new().into_iter(),
+            challenge: Challenge::default(),
+            answer: "".to_string(),
             link,
         }
     }
@@ -26,9 +36,15 @@ impl Component for Study {
     fn update(&mut self, msg: Self::Message) -> ShouldRender {
         match msg {
             Msg::UpdateList(res) => {
-                self.list = res;
+                self.iterator = res.into_iter();
+                self.challenge = self.iterator.next().unwrap_or_default();
+                true
+            },
+            Msg::CheckAnswer(answer) => {
+                self.answer = answer;
                 true
             }
+
         }
     }
 
@@ -37,16 +53,24 @@ impl Component for Study {
     }
 
     fn view(&self) -> Html {
+
+        type Anchor = RouterAnchor<AppRoute>;
+
         html! {
-            <div class="tile is-ancestor is-vertical">
-                <div class="tile is-child hero">
-                    <div class="hero-body container pb-0">
-                        <h1 class="title is-1">{ "Welcome..." }</h1>
-                        <h2 class="subtitle">{ "...to the best yew content" }</h2>
-                        <h3> { self.list.clone() } </h3>
+            <div>
+                <div>
+                    <div>
+                        <h2>{ "Let's Do This" }</h2>
+                        <p> { self.challenge.prompt.clone() } </p>
+                        <p><input id="challenge_taken" /></p>
+                        <button>{ "Check" }</button>
                     </div>
                 </div>
+                    <Anchor classes="navbar-item" route=AppRoute::Index>
+                      { "Done" }
+                      </Anchor>
             </div>
+
         }
     }
 

@@ -1,0 +1,7 @@
+query VocabList($awesomeId: Int!, $limit: Int!) {
+  getStudyList(awesomeId: $awesomeId, limit: $limit) {
+    vocabId
+    vocabStudyId
+    prompt
+  }
+}

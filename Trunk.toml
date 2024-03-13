@@ -1,0 +1,10 @@
+[serve]
+port=3001
+
+[build]
+target = "index.html"
+dist = "dist"
+
+[[proxy]]
+rewrite = "/gql"
+backend = "http://localhost:3000/gql"

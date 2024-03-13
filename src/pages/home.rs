@@ -1,4 +1,6 @@
 use yew::prelude::*;
+use yew_router::components::RouterAnchor;
+use crate::AppRoute;
 
 pub struct Home;
 impl Component for Home {
@@ -18,15 +20,21 @@ impl Component for Home {
     }
 
     fn view(&self) -> Html {
+        type Anchor = RouterAnchor<AppRoute>;
+
         html! {
-            <div class="tile is-ancestor is-vertical">
-                <div class="tile is-child">
-                    <figure class="image is-3by1">
+            <div>
+                <div>
+                    <figure>
                         <img src="logo.jpg" class="logo" />
                     </figure>
                     <h1>{ "Welcome to Grow My Vocab!" }</h1>
                     <p>{ "Expand your vocabulary with fun and engaging exercises every day." }</p>
                 </div>
+
+                <Anchor route=AppRoute::Study>
+                   { "Study" }
+                </Anchor>
             </div>
         }
     }

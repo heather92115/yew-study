@@ -1,5 +1,43 @@
 use graphql_client::GraphQLQuery;
+use serde::{Deserialize, Serialize};
 use crate::sl::gql::{post_gql_query, FetchError};
+
+/// Response JSON wrapper
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ResponseWrapper {
+    pub data: Data,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Data {
+    #[serde(rename = "getStudyList")]
+    pub get_study_list: Vec<Challenge>,
+}
+
+/// Represents a challenge presented to a user for vocabulary practice.
+///
+/// Each challenge is generated based on the user's learning history and targets specific vocabulary
+/// that the user is currently studying. It includes a prompt that may consist of a word or phrase
+/// in the target language, a sentence for translation, or any other form of query designed to
+/// test the user's knowledge and recall of the vocabulary.
+///
+/// # Fields
+///
+/// - `vocab_id`: The unique identifier of the vocabulary item being challenged. This relates to a specific
+/// word or phrase in the study material.
+/// - `vocab_study_id`: The unique identifier for the user's study history with this vocabulary item,
+/// allowing for tracking of progress and retrieval of user-specific study data.
+/// - `prompt`: The question or challenge presented to the user, designed to elicit the correct response or
+/// translation based on the vocabulary being studied.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct Challenge {
+    #[serde(rename = "vocabId")]
+    pub vocab_id: i32,
+
+    #[serde(rename = "vocabStudyId")]
+    pub vocab_study_id: i32,
+    pub prompt: String,
+}
 
 /// Represents a GraphQL query for fetching a list of vocabulary study items.
 ///
@@ -42,9 +80,9 @@ struct VocabList;
 ///
 /// # Returns
 ///
-/// A `Result` wrapping a JSON string containing the fetched vocabulary study list
+/// A `Result` wrapping Vec<Challenge> containing the fetched vocabulary study list
 /// on success, or a `FetchError` on failure.
-pub async fn fetch_vocab_study_list(awesome_id: i32, limit: i32) -> Result<String, FetchError> {
+pub async fn fetch_vocab_study_list(awesome_id: i32, limit: i32) -> Result<Vec<Challenge>, FetchError> {
     let build_query = VocabList::build_query(vocab_list::Variables {
         awesome_id: awesome_id.into(),
         limit: limit.into()
@@ -53,5 +91,11 @@ pub async fn fetch_vocab_study_list(awesome_id: i32, limit: i32) -> Result<Strin
     // Serialize the query to a string
     let query_string = serde_json::to_string(&build_query)?;
 
-    post_gql_query(query_string).await
+    // send the gql request and await the response
+    let gql_json_res = post_gql_query(query_string).await?;
+
+    // Transform the JSON to the challenge list, (wrapped)
+    let wrapper: ResponseWrapper = serde_json::from_str(&gql_json_res)?;
+
+    Ok(wrapper.data.get_study_list)
 }

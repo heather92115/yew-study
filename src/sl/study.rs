@@ -90,13 +90,7 @@ pub async fn fetch_vocab_study_list(awesome_id: i32, limit: i32) -> Result<Vec<C
 
     // Serialize the query to a string
     let query_string = serde_json::to_string(&build_query)?;
-    dbg!(&query_string);
-    web_sys::console::log_1(&format!("query_string {}", &query_string).into());
-
     let gql_json_res = post_gql_query(query_string).await?;
-    dbg!(&gql_json_res);
-    web_sys::console::log_1(&"gql_json_res".into());
-
     let wrapper: ResponseWrapper = serde_json::from_str(&gql_json_res)?;
 
     Ok(wrapper.data.get_study_list)

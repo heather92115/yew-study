@@ -1,14 +1,16 @@
 use std::vec::IntoIter;
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use wasm_bindgen_futures::spawn_local;
+use web_sys::{Event, FocusEvent, HtmlInputElement, InputEvent, KeyboardEvent, MouseEvent};
 
-use yew::{Component, Context, html, Html};
-
-use crate::sl::study::{Challenge, fetch_vocab_study_list};
+use yew::{html, Component, Context, Html};
+use crate::sl::study::{fetch_vocab_study_list, Challenge};
 
 pub enum Msg {
     UpdateList(Vec<Challenge>),
-    CheckAnswer(String),
-    FetchError(String)
+    UpdateAnswer(String),
+    CheckAnswer,
+    FetchError(String),
 }
 
 pub struct Study {
@@ -20,7 +22,6 @@ pub struct Study {
 
 impl Component for Study {
     type Message = Msg;
-
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
@@ -37,21 +38,62 @@ impl Component for Study {
             Msg::UpdateList(res) => {
                 self.iterator = res.into_iter();
                 self.challenge = self.iterator.next().unwrap_or_default();
-            },
-            Msg::CheckAnswer(answer) => {
-                self.answer = answer;
-            },
-            Msg::FetchError(_err) => {
-
+                true
             }
-        }
+            Msg::UpdateAnswer(answer) => {
+                self.answer = answer;
 
-        true
+                web_sys::console::log_1(&format!("pages/study answer: {}", self.answer).into());
+
+                true
+            }
+            Msg::CheckAnswer => {
+                web_sys::console::log_1(&format!("pages/study CheckAnswer: {}", self.answer).into());
+                true
+            },
+            Msg::FetchError(_err) => true,
+        }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn view(& self, ctx: &Context<Self>) -> Html {
 
-        //let cb = ctx.link().callback(Msg::CheckAnswer);
+        let link = ctx.link().clone();
+
+        let oninput = link.callback(|e: InputEvent| {
+            let event: Event = e.dyn_into().unwrap_throw();
+            let event_target = event.target().unwrap_throw();
+            let target: HtmlInputElement = event_target.dyn_into().unwrap_throw();
+            Msg::UpdateAnswer(target.value())
+        });
+
+        let onblur = link.callback(|e: FocusEvent| {
+            let event: Event = e.dyn_into().unwrap_throw();
+            let event_target = event.target().unwrap_throw();
+            let target: HtmlInputElement = event_target.dyn_into().unwrap_throw();
+            Msg::UpdateAnswer(target.value())
+        });
+
+        let onkeypress = link.callback(|e: KeyboardEvent| {
+
+            let event: Event = e.clone().dyn_into().unwrap_throw();
+            let event_target = event.target().unwrap_throw();
+            let target: HtmlInputElement = event_target.dyn_into().unwrap_throw();
+            if e.key() == "Enter" {
+                Msg::CheckAnswer
+            } else {
+                Msg::UpdateAnswer(target.value())
+            }
+        });
+
+        let onmouseover = |e: MouseEvent| {
+            let event: Event = e.dyn_into().unwrap_throw();
+            let event_target = event.target().unwrap_throw();
+            let target: HtmlInputElement = event_target.dyn_into().unwrap_throw();
+
+            target
+                .focus()
+                .unwrap_or_default();
+        };
 
         html! {
             <section>
@@ -60,8 +102,19 @@ impl Component for Study {
                     <div>
                         <h2>{ "Let's Do This" }</h2>
                         <p> { self.challenge.prompt.clone() } </p>
-                        <p><input id="challenge_taken" /></p>
-                        <button onclick={ctx.link().callback(|_| Msg::CheckAnswer("".to_string()))}>{ "Check" }</button>
+                        <p>
+                            <input
+                                id="challenge_taken"
+                                type="text"
+                                {onmouseover}
+                                {onblur}
+                                {onkeypress}
+                                {oninput}
+                            />
+                        </p>
+
+                        <button onclick={ctx.link().callback(|_| Msg::CheckAnswer)}>{ "Check" }</button>
+                        <p> { self.err_msg.clone() } </p>
                     </div>
                 </div>
                 </div>
@@ -70,7 +123,6 @@ impl Component for Study {
     }
 
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
-
         let link = ctx.link().clone();
         if first_render {
             spawn_local(async move {
@@ -86,4 +138,3 @@ impl Component for Study {
         }
     }
 }
-

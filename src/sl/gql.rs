@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
-use graphql_client::Response;
 use wasm_bindgen::JsValue;
 
 /// Represents an error encountered during a fetch operation in a WebAssembly environment.
@@ -74,7 +73,7 @@ pub async fn post_gql_query(gql_query_body: String) -> Result<String, FetchError
     pub static GQL_URL: &str = "http://127.0.0.1:3001/gql";
 
     let client = reqwest::Client::new();
-    let mut res = client.post(GQL_URL).body(gql_query_body).send().await?;
+    let res = client.post(GQL_URL).body(gql_query_body).send().await?;
 
     Ok(res.text().await?)
 }

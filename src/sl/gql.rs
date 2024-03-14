@@ -1,14 +1,8 @@
 use std::error::Error;
 use std::fmt;
 use std::fmt::{Debug, Display, Formatter};
-use wasm_bindgen::{JsValue, JsCast};
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, Response as Res};
-
-/// GQL endpoint expected on the BE server.
-pub static GQL_URL: &str = "/gql";
-pub static GQL_METHOD: &str = "POST";
-
+use graphql_client::Response;
+use wasm_bindgen::JsValue;
 
 /// Represents an error encountered during a fetch operation in a WebAssembly environment.
 ///
@@ -33,15 +27,26 @@ impl Display for FetchError {
 
 impl Error for FetchError {}
 
-impl From<JsValue> for FetchError {
-    fn from(value: JsValue) -> Self {
-        FetchError { err: value }
+impl From<String> for FetchError {
+    fn from(value: String) -> Self {
+        let js_value_error = JsValue::from_str(&value);
+        FetchError { err: js_value_error }
     }
 }
-
 impl From<serde_json::Error> for FetchError {
     fn from(value: serde_json::Error) -> Self {
         // Convert the serde_json::Error to a string and then to a JsValue
+        let error_message = value.to_string();
+        let js_value_error = JsValue::from_str(&error_message);
+
+        FetchError { err: js_value_error }
+    }
+}
+
+
+impl From<reqwest::Error> for FetchError {
+    fn from(value: reqwest::Error) -> Self {
+        // Convert the reqwest::Error to a string and then to a JsValue
         let error_message = value.to_string();
         let js_value_error = JsValue::from_str(&error_message);
 
@@ -65,17 +70,11 @@ impl From<serde_json::Error> for FetchError {
 /// a `FetchError` indicating what went wrong during the request process.
 pub async fn post_gql_query(gql_query_body: String) -> Result<String, FetchError> {
 
-    let mut opts = RequestInit::new();
-    opts.method(GQL_METHOD);
-    opts.body(Some(&JsValue::from_str(&gql_query_body)));
+    /// GQL endpoint expected on the BE server.
+    pub static GQL_URL: &str = "http://127.0.0.1:3001/gql";
 
-    let request = Request::new_with_str_and_init(GQL_URL, &opts)?;
-    request.headers().set("Content-Type", "application/json")?;
+    let client = reqwest::Client::new();
+    let mut res = client.post(GQL_URL).body(gql_query_body).send().await?;
 
-    let window = yew::utils::window();
-    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
-    let resp: Res = resp_value.dyn_into().unwrap();
-
-    let text = JsFuture::from(resp.text()?).await?;
-    Ok(text.as_string().unwrap())
+    Ok(res.text().await?)
 }

@@ -1,86 +1,89 @@
 use std::vec::IntoIter;
 use wasm_bindgen_futures::spawn_local;
-use yew::{Component, ComponentLink, html, Html, ShouldRender};
-use yew_router::components::RouterAnchor;
-use crate::AppRoute;
+
+use yew::{Component, Context, html, Html};
 
 use crate::sl::study::{Challenge, fetch_vocab_study_list};
 
-#[derive(Clone)]
-pub struct StudyProps {
+pub enum Msg {
+    UpdateList(Vec<Challenge>),
+    CheckAnswer(String),
+    FetchError(String)
+}
+
+pub struct Study {
     iterator: IntoIter<Challenge>,
     challenge: Challenge,
     answer: String,
-    link: ComponentLink<Self>,
+    err_msg: String,
 }
 
-pub enum Msg {
-    UpdateList(Vec<Challenge>),
-    CheckAnswer(String)
-}
-
-impl Component for StudyProps {
+impl Component for Study {
     type Message = Msg;
 
     type Properties = ();
 
-    fn create(_props: Self::Properties, link: ComponentLink<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
             iterator: Vec::new().into_iter(),
             challenge: Challenge::default(),
             answer: "".to_string(),
-            link,
+            err_msg: "".to_string(),
         }
     }
 
-    fn update(&mut self, msg: Self::Message) -> ShouldRender {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::UpdateList(res) => {
                 self.iterator = res.into_iter();
                 self.challenge = self.iterator.next().unwrap_or_default();
-                true
             },
             Msg::CheckAnswer(answer) => {
                 self.answer = answer;
-                true
+            },
+            Msg::FetchError(_err) => {
+
             }
-
         }
+
+        true
     }
 
-    fn change(&mut self, _props: Self::Properties) -> ShouldRender {
-        false
-    }
+    fn view(&self, ctx: &Context<Self>) -> Html {
 
-    fn view(&self) -> Html {
-
-        type Anchor = RouterAnchor<AppRoute>;
+        //let cb = ctx.link().callback(Msg::CheckAnswer);
 
         html! {
-            <div>
+            <section>
+                <div>
                 <div>
                     <div>
                         <h2>{ "Let's Do This" }</h2>
                         <p> { self.challenge.prompt.clone() } </p>
                         <p><input id="challenge_taken" /></p>
-                        <button>{ "Check" }</button>
+                        <button onclick={ctx.link().callback(|_| Msg::CheckAnswer("".to_string()))}>{ "Check" }</button>
                     </div>
                 </div>
-                    <Anchor classes="navbar-item" route=AppRoute::Index>
-                      { "Done" }
-                      </Anchor>
-            </div>
-
+                </div>
+            </section>
         }
     }
 
-    fn rendered(&mut self, first_render: bool) {
-        let link = self.link.clone();
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
+
+        let link = ctx.link().clone();
         if first_render {
             spawn_local(async move {
                 let res = fetch_vocab_study_list(1, 3).await;
-                link.send_message(Msg::UpdateList(res.unwrap()))
+                if res.is_err() {
+                    let err_msg = res.err().clone().unwrap().to_string();
+                    link.send_message(Msg::FetchError(err_msg.clone()));
+                } else {
+                    let list = res.unwrap_or_default();
+                    link.send_message(Msg::UpdateList(list.clone()));
+                }
             });
         }
     }
 }
+

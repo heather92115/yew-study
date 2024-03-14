@@ -6,56 +6,45 @@ use yew_router::prelude::*;
 mod pages;
 mod sl;
 
-use pages::{home::Home, study::StudyProps};
-struct App;
+use pages::{home::Home, study::Study};
+use crate::pages::page_not_found::PageNotFound;
 
-#[derive(Switch, Debug, Clone, PartialEq)]
-pub enum AppRoute {
-    #[to = "/study"]
+#[derive(Routable, PartialEq, Eq, Clone, Debug)]
+pub enum Route {
+    #[at("/")]
+    Home,
+    #[at("/study")]
     Study,
-    #[to = "/"]
-    Index,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
 }
 
-impl Component for App {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_: Self::Properties, _: ComponentLink<Self>) -> Self {
-        Self
-    }
-
-    fn update(&mut self, _: Self::Message) -> bool {
-        false
-    }
-
-    fn change(&mut self, _: Self::Properties) -> bool {
-        false
-    }
-
-    fn view(&self) -> Html {
-
-        html! {
-            <>
-            <div class="container">
-
-                <main>
-                <Router<AppRoute, ()>
-                    render = Router::render(|switch: AppRoute| {
-                        match switch {
-                            AppRoute::Study => html!{<StudyProps/>},
-                            AppRoute::Index => html!{<Home/>},
-                        }
-                    })
-                />
-                </main>
-            </div>
-
-            </>
+fn switch(routes: Route) -> Html {
+    match routes {
+        Route::Study { } => {
+            html! { <Study  /> }
+        }
+        Route::Home => {
+            html! { <Home /> }
+        }
+        Route::NotFound => {
+            html! { <PageNotFound /> }
         }
     }
 }
 
+#[function_component(Main)]
+fn app() -> Html {
+    html! {
+        <BrowserRouter>
+                <main>
+                    <Switch<Route> render={switch} />
+                </main>
+        </BrowserRouter>
+    }
+}
+
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<Main>::new().render();
 }

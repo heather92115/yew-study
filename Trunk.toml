@@ -7,4 +7,4 @@ dist = "dist"
 
 [[proxy]]
 rewrite = "/gql"
-backend = "http://localhost:3000/gql"
+backend = "http://127.0.0.1:3000/gql"

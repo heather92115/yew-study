@@ -29,7 +29,7 @@ pub struct Data {
 /// allowing for tracking of progress and retrieval of user-specific study data.
 /// - `prompt`: The question or challenge presented to the user, designed to elicit the correct response or
 /// translation based on the vocabulary being studied.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Challenge {
     #[serde(rename = "vocabId")]
     pub vocab_id: i32,
@@ -80,7 +80,7 @@ struct VocabList;
 ///
 /// # Returns
 ///
-/// A `Result` wrapping Vec<Challenge> containing the fetched vocabulary study list
+/// A `Result` wrapping a JSON string containing the fetched vocabulary study list
 /// on success, or a `FetchError` on failure.
 pub async fn fetch_vocab_study_list(awesome_id: i32, limit: i32) -> Result<Vec<Challenge>, FetchError> {
     let build_query = VocabList::build_query(vocab_list::Variables {
@@ -90,11 +90,13 @@ pub async fn fetch_vocab_study_list(awesome_id: i32, limit: i32) -> Result<Vec<C
 
     // Serialize the query to a string
     let query_string = serde_json::to_string(&build_query)?;
+    dbg!(&query_string);
+    web_sys::console::log_1(&format!("query_string {}", &query_string).into());
 
-    // send the gql request and await the response
     let gql_json_res = post_gql_query(query_string).await?;
+    dbg!(&gql_json_res);
+    web_sys::console::log_1(&"gql_json_res".into());
 
-    // Transform the JSON to the challenge list, (wrapped)
     let wrapper: ResponseWrapper = serde_json::from_str(&gql_json_res)?;
 
     Ok(wrapper.data.get_study_list)

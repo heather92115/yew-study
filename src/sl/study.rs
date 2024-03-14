@@ -41,7 +41,7 @@ pub struct Challenge {
 
 /// Represents a GraphQL query for fetching a list of vocabulary study items.
 ///
-/// This struct is a Rust representation of a GraphQL query defined in the `get_study_list.graphql` file.
+/// This struct is a Rust representation of a GraphQL query defined in the `queries.graphql` file.
 /// It uses the `async-graphql` crate to generate Rust types that correspond to the GraphQL schema and query.
 /// The query requires two parameters: `awesomeId`, representing the identifier of the awesome person, and
 /// `limit`, specifying the maximum number of study items to retrieve.
@@ -58,7 +58,7 @@ pub struct Challenge {
 #[derive(GraphQLQuery)]
 #[graphql(
 schema_path = "./graphql/schema.graphql",
-query_path = "./graphql/get_study_list.graphql",
+query_path = "./graphql/queries.graphql",
 response_derives = "Debug"
 )]
 struct VocabList;
@@ -90,14 +90,45 @@ pub async fn fetch_vocab_study_list(awesome_id: i32, limit: i32) -> Result<Vec<C
 
     // Serialize the query to a string
     let query_string = serde_json::to_string(&build_query)?;
-    dbg!(&query_string);
-    web_sys::console::log_1(&format!("query_string {}", &query_string).into());
-
     let gql_json_res = post_gql_query(query_string).await?;
-    dbg!(&gql_json_res);
-    web_sys::console::log_1(&"gql_json_res".into());
-
     let wrapper: ResponseWrapper = serde_json::from_str(&gql_json_res)?;
 
     Ok(wrapper.data.get_study_list)
+}
+
+
+/// Response JSON wrapper
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CheckAnswerResponseWrapper {
+    pub data: Check,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Check {
+    #[serde(rename = "checkResponse")]
+    pub response_prompt: String,
+}
+
+
+#[derive(GraphQLQuery)]
+#[graphql(
+schema_path = "./graphql/schema.graphql",
+query_path = "./graphql/check.graphql",
+response_derives = "Debug"
+)]
+struct CheckResponse;
+pub async fn check_vocab_answer(answer: String, challenge: Challenge) -> Result<String, FetchError>{
+
+    let build_query = CheckResponse::build_query(check_response::Variables {
+        vocab_id: challenge.vocab_id.into(),
+        vocab_study_id: challenge.vocab_study_id.into(),
+        entered: answer.clone().into()
+    });
+
+    // Serialize the query to a string
+    let query_string = serde_json::to_string(&build_query)?;
+    let gql_json_res = post_gql_query(query_string).await?;
+    let wrapper: CheckAnswerResponseWrapper = serde_json::from_str(&gql_json_res)?;
+
+    Ok(wrapper.data.response_prompt)
 }

@@ -1,0 +1,3 @@
+mutation CheckResponse($vocabId: Int!, $vocabStudyId: Int!, $entered: String!) {
+    checkResponse(vocabId: $vocabId, vocabStudyId: $vocabStudyId, entered: $entered)
+}

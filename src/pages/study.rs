@@ -64,7 +64,7 @@ pub enum StudyMode {
 /// - `answer`: The user's response to the current `prompt`. This is updated based on user input.
 /// - `err_msg`: An error message to be displayed to the user in case of a problem,
 ///    such as an issue fetching a new challenge or submitting a response.
-/// = `button_ref`: Attaches to html button to allow direct programmatic access
+/// = `element_focus_ref`: Attaches to an html element to allow direct programmatic access
 ///
 /// ## Usage:
 /// The `Study` struct is instantiated as part of the Yew component lifecycle and is pivotal
@@ -77,7 +77,7 @@ pub struct Study {
     prompt: String,
     answer: String,
     err_msg: String,
-    button_ref: NodeRef,
+    element_focus_ref: NodeRef,
 }
 
 /// `Study` represents a study session within a vocabulary learning web application. This component
@@ -181,7 +181,7 @@ impl Component for Study {
             prompt: "".to_string(),
             answer: "".to_string(),
             err_msg: "".to_string(),
-            button_ref: NodeRef::default(),
+            element_focus_ref: NodeRef::default(),
         }
     }
 
@@ -201,6 +201,7 @@ impl Component for Study {
                 self.iterator = res.into_iter();
                 self.challenge = self.iterator.next().unwrap_or_default();
                 self.prompt = self.challenge.prompt.clone();
+                self.answer = "".to_string();
                 self.err_msg = "".to_string();
                 self.study_mode = StudyMode::Challenge;
 
@@ -235,6 +236,7 @@ impl Component for Study {
                 } else {
                     self.challenge = self.iterator.next().unwrap_or_default();
                     self.prompt = self.challenge.prompt.clone();
+                    self.answer = "".to_string();
                     self.err_msg = "".to_string();
                     self.study_mode = StudyMode::Challenge;
                 }
@@ -323,6 +325,7 @@ impl Component for Study {
                                         <input
                                             id="challenge_taken"
                                             type="text"
+                                            ref={self.element_focus_ref.clone()}
                                             {onmouseover}
                                             {onblur}
                                             {onkeypress}
@@ -336,7 +339,7 @@ impl Component for Study {
                                 <>
                                     <h2>{ self.prompt.clone() }</h2>
                                     <button
-                                        ref={self.button_ref.clone()}
+                                        ref={self.element_focus_ref.clone()}
                                         onclick={ctx.link().callback(|_| Msg::NextChallenge)}>{ "Next" }</button>
                                 </>
                             },
@@ -366,7 +369,7 @@ impl Component for Study {
     /// - On the first render (`first_render` is `true`), it initiates loading the next vocabulary list
     ///   by calling `load_next_vocab_list`
     /// .
-    /// - Regardless of the render, if a button reference (`button_ref`) is set and points to a valid
+    /// - Regardless of the render, if a element reference (`element_focus_ref`) is set and points to a valid
     ///   and present HTML element, it attempts to set focus to that element. This allows the user
     ///  to stay in 'keyboard only' mode.
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
@@ -375,8 +378,8 @@ impl Component for Study {
             self.load_next_vocab_list(link, 1, 5);
         }
 
-        if let Some(button) = self.button_ref.cast::<web_sys::HtmlElement>() {
-            button.focus().unwrap_throw();
+        if let Some(element) = self.element_focus_ref.cast::<web_sys::HtmlElement>() {
+            element.focus().unwrap_throw();
         }
     }
 }

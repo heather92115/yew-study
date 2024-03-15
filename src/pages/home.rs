@@ -1,6 +1,6 @@
 use yew::prelude::*;
 use yew_router::prelude::Link;
-use crate::Route;
+use crate::route::Route;
 
 pub struct Home;
 

@@ -2,10 +2,11 @@
 name = "yew-study"
 version = "0.1.0"
 edition = "2018"
+authors = ["Heather"]
 
 [dependencies]
 yewtil = { version = "0.4", features = ["future"]}
-wasm-bindgen = "0.2.92" # This is pinned primarily for CI stability.
+wasm-bindgen = "0.2.92" # This is pinned primarily for CI stability, wasm-bindgen-cli version must match
 wasm-bindgen-futures = "0.4.42"
 yew = { version = "0.21.0", features = ["csr"] }
 yew-router = "0.18.0"
@@ -19,3 +20,7 @@ reqwest = { version = "0.11.26", features = ["json"] }
 
 [features]
 default = []
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.42"
+

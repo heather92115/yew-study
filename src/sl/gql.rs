@@ -42,7 +42,6 @@ impl From<serde_json::Error> for FetchError {
     }
 }
 
-
 impl From<reqwest::Error> for FetchError {
     fn from(value: reqwest::Error) -> Self {
         // Convert the reqwest::Error to a string and then to a JsValue
@@ -52,7 +51,6 @@ impl From<reqwest::Error> for FetchError {
         FetchError { err: js_value_error }
     }
 }
-
 
 /// Fetches a text response from a GQL JSON request in a WebAssembly environment.
 ///

@@ -110,6 +110,38 @@ pub struct Check {
 }
 
 
+/// Performs a GraphQL query to check a user's answer against the correct vocabulary answer.
+///
+/// This function sends a query to a GraphQL server with the user's answer and the associated vocabulary study information.
+/// It utilizes the `CheckResponse` GraphQL query which is defined in a separate `.graphql` file.
+///
+/// ## Parameters:
+/// - `answer`: The answer provided by the user.
+/// - `challenge`: A `Challenge` struct containing the `vocab_id`, `vocab_study_id`, and the prompt for the vocabulary challenge.
+///
+/// ## Returns:
+/// - A `Result` which is `Ok` containing the server's response prompt if the query was successful, or a `FetchError` if there was an issue with the query.
+///
+/// ## Example Usage:
+/// ```rust
+/// let answer = "your_answer".to_string();
+/// let challenge = Challenge {
+///     vocab_id: 1,
+///     vocab_study_id: 1,
+///     prompt: "Translate 'hello'".to_string(),
+/// };
+///
+/// if let Ok(response_prompt) = check_vocab_answer(answer, challenge).await {
+///     println!("Server response: {}", response_prompt);
+/// } else {
+///     println!("Error checking the answer.");
+/// }
+/// ```
+///
+/// ## Important Notes:
+/// - The function constructs a GraphQL query dynamically using the provided answer and challenge details.
+/// - The response from the server is deserialized into a `CheckAnswerResponseWrapper` struct to extract the response prompt.
+/// - This function is `async` and must be awaited.
 #[derive(GraphQLQuery)]
 #[graphql(
 schema_path = "./graphql/schema.graphql",

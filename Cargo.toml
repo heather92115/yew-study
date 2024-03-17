@@ -5,18 +5,19 @@ edition = "2018"
 authors = ["Heather"]
 
 [dependencies]
-yewtil = { version = "0.4", features = ["future"]}
-wasm-bindgen = "0.2.92" # This is pinned primarily for CI stability, wasm-bindgen-cli version must match
-wasm-bindgen-futures = "0.4.42"
-yew = { version = "0.21.0", features = ["csr"] }
-yew-router = "0.18.0"
+console = "0.15.8"
+dotenv = "0.15.0"
 graphql_client = "0.13.0"
+reqwest = { version = "0.11.26", features = ["json"] }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"
+wasm-bindgen = "0.2.92" # This is pinned primarily for CI stability, wasm-bindgen-cli version must match
+wasm-bindgen-futures = "0.4.42"
 web-sys = { version = "0.3.51", features = ["console", "DataTransfer"] }
-dotenv = "0.15.0"
-console = "0.15.8"
-reqwest = { version = "0.11.26", features = ["json"] }
+yew = { version = "0.21.0", features = ["csr"] }
+yew-i18n = "0.1.2"
+yew-router = "0.18.0"
+yewtil = { version = "0.4", features = ["future"]}
 
 [features]
 default = []

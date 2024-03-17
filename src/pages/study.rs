@@ -4,6 +4,7 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{Event, FocusEvent, HtmlInputElement, InputEvent, KeyboardEvent, MouseEvent};
 
 use yew::{html, Component, Context, Html, NodeRef};
+use crate::components::prompt::Prompt;
 use crate::sl::study::{fetch_vocab_study_list, Challenge, check_vocab_answer};
 
 /// Enumeration of messages that drive the component logic in the study session.
@@ -64,7 +65,7 @@ pub enum StudyMode {
 /// - `answer`: The user's response to the current `prompt`. This is updated based on user input.
 /// - `err_msg`: An error message to be displayed to the user in case of a problem,
 ///    such as an issue fetching a new challenge or submitting a response.
-/// = `element_focus_ref`: Attaches to an html element to allow direct programmatic access
+/// = `element_focus_ref`: Attaches to a html element to allow direct programmatic access
 ///
 /// ## Usage:
 /// The `Study` struct is instantiated as part of the Yew component lifecycle and is pivotal
@@ -74,7 +75,7 @@ pub struct Study {
     study_mode: StudyMode,
     iterator: IntoIter<Challenge>,
     challenge: Challenge,
-    prompt: String,
+    outcome_prompt: String,
     answer: String,
     err_msg: String,
     element_focus_ref: NodeRef,
@@ -148,7 +149,6 @@ impl Study {
 
             } else {
                 let response_prompt = res.unwrap_or_default();
-                web_sys::console::log_1(&format!("pages/study response_prompt: {}", response_prompt).into());
                 link.send_message(Msg::ShowAnswerResponse(response_prompt));
             }
         });
@@ -178,7 +178,7 @@ impl Component for Study {
             study_mode: StudyMode::Challenge,
             iterator: Vec::new().into_iter(),
             challenge: Challenge::default(),
-            prompt: "".to_string(),
+            outcome_prompt: "".to_string(),
             answer: "".to_string(),
             err_msg: "".to_string(),
             element_focus_ref: NodeRef::default(),
@@ -200,7 +200,6 @@ impl Component for Study {
             Msg::UpdateList(res) => {
                 self.iterator = res.into_iter();
                 self.challenge = self.iterator.next().unwrap_or_default();
-                self.prompt = self.challenge.prompt.clone();
                 self.answer = "".to_string();
                 self.err_msg = "".to_string();
                 self.study_mode = StudyMode::Challenge;
@@ -214,15 +213,12 @@ impl Component for Study {
             }
             Msg::CheckAnswer => {
                 let link = ctx.link().clone();
-
-                web_sys::console::log_1(&format!("pages/study CheckAnswer: {}", self.answer).into());
                 self.get_answer_checked(link, self.answer.clone(), self.challenge.clone());
                 self.err_msg = "".to_string();
                 true
             },
             Msg::ShowAnswerResponse(prompt) => {
-                web_sys::console::log_1(&format!("pages/study ShowAnswerResponse: {}", prompt).into());
-                self.prompt = prompt;
+                self.outcome_prompt = prompt;
                 self.err_msg = "".to_string();
                 self.study_mode = StudyMode::Outcome;
 
@@ -235,7 +231,6 @@ impl Component for Study {
                     self.load_next_vocab_list(link, 1, 5);
                 } else {
                     self.challenge = self.iterator.next().unwrap_or_default();
-                    self.prompt = self.challenge.prompt.clone();
                     self.answer = "".to_string();
                     self.err_msg = "".to_string();
                     self.study_mode = StudyMode::Challenge;
@@ -320,7 +315,8 @@ impl Component for Study {
                             StudyMode::Challenge => html! {
                                 <>
                                     <h2>{ "Let's Do This" }</h2>
-                                    <p> { self.prompt.clone() } </p>
+                                    <Prompt challenge={self.challenge.clone()}/>
+
                                     <p>
                                         <input
                                             id="challenge_taken"
@@ -337,7 +333,7 @@ impl Component for Study {
                             },
                             StudyMode::Outcome => html! {
                                 <>
-                                    <h2>{ self.prompt.clone() }</h2>
+                                    <h2>{ self.outcome_prompt.clone() }</h2>
                                     <button
                                         ref={self.element_focus_ref.clone()}
                                         onclick={ctx.link().callback(|_| Msg::NextChallenge)}>{ "Next" }</button>
@@ -369,7 +365,7 @@ impl Component for Study {
     /// - On the first render (`first_render` is `true`), it initiates loading the next vocabulary list
     ///   by calling `load_next_vocab_list`
     /// .
-    /// - Regardless of the render, if a element reference (`element_focus_ref`) is set and points to a valid
+    /// - Regardless of the render, if an element reference (`element_focus_ref`) is set and points to a valid
     ///   and present HTML element, it attempts to set focus to that element. This allows the user
     ///  to stay in 'keyboard only' mode.
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {

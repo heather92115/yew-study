@@ -1,9 +1,8 @@
 #![recursion_limit = "1024"]
 
-use yew::{function_component, Html, html};
+use yew::{function_component, html, Html};
 use yew_router::prelude::*;
-use yew_study::route::{Route, switch};
-
+use yew_study::route::{switch, Route};
 
 /// The `Main` component serving as the root of the Yew-based web application.
 ///
@@ -42,7 +41,6 @@ fn app() -> Html {
         </BrowserRouter>
     }
 }
-
 
 /// Entry point for the Yew-based web application "Grow Your Vocabulary".
 ///

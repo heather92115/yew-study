@@ -29,14 +29,35 @@ pub struct Data {
 /// allowing for tracking of progress and retrieval of user-specific study data.
 /// - `prompt`: The question or challenge presented to the user, designed to elicit the correct response or
 /// translation based on the vocabulary being studied.
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[derive(Serialize, Deserialize, PartialEq, Debug, Clone, Default)]
 pub struct Challenge {
     #[serde(rename = "vocabId")]
     pub vocab_id: i32,
 
     #[serde(rename = "vocabStudyId")]
     pub vocab_study_id: i32,
-    pub prompt: String,
+
+    #[serde(rename = "firstLang")]
+    pub first_lang: String,
+
+    pub infinitive: String,
+    pub pos: String,
+    pub hint: String,
+
+    #[serde(rename = "numLearningWords")]
+    pub num_learning_words: i32,
+
+    #[serde(rename = "userNotes")]
+    pub user_notes: String,
+
+    #[serde(rename = "correctAttempts")]
+    pub correct_attempts: i32,
+
+    #[serde(rename = "knownLangCode")]
+    pub known_lang_code: String,
+
+    #[serde(rename = "learningLangCode")]
+    pub learning_lang_code: String,
 }
 
 /// Represents a GraphQL query for fetching a list of vocabulary study items.
@@ -92,7 +113,6 @@ pub async fn fetch_vocab_study_list(awesome_id: i32, limit: i32) -> Result<Vec<C
     let query_string = serde_json::to_string(&build_query)?;
     let gql_json_res = post_gql_query(query_string).await?;
     let wrapper: ResponseWrapper = serde_json::from_str(&gql_json_res)?;
-
     Ok(wrapper.data.get_study_list)
 }
 
@@ -121,27 +141,6 @@ pub struct Check {
 ///
 /// ## Returns:
 /// - A `Result` which is `Ok` containing the server's response prompt if the query was successful, or a `FetchError` if there was an issue with the query.
-///
-/// ## Example Usage:
-/// ```rust
-/// let answer = "your_answer".to_string();
-/// let challenge = Challenge {
-///     vocab_id: 1,
-///     vocab_study_id: 1,
-///     prompt: "Translate 'hello'".to_string(),
-/// };
-///
-/// if let Ok(response_prompt) = check_vocab_answer(answer, challenge).await {
-///     println!("Server response: {}", response_prompt);
-/// } else {
-///     println!("Error checking the answer.");
-/// }
-/// ```
-///
-/// ## Important Notes:
-/// - The function constructs a GraphQL query dynamically using the provided answer and challenge details.
-/// - The response from the server is deserialized into a `CheckAnswerResponseWrapper` struct to extract the response prompt.
-/// - This function is `async` and must be awaited.
 #[derive(GraphQLQuery)]
 #[graphql(
 schema_path = "./graphql/schema.graphql",

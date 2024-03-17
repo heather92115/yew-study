@@ -37,7 +37,7 @@ impl Component for Home {
                     </div>
                 </div>
                 <Link<Route> classes={classes!("navbar-item")} to={Route::Study}>
-                            { "Study" }
+                            { "Learn" }
                 </Link<Route>>
             </section>
         }

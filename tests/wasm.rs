@@ -1,5 +1,4 @@
 #[cfg(test)]
-
 use wasm_bindgen_test::*;
 
 /// Test the test

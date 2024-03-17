@@ -2069,6 +2069,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "yew-i18n"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8000059fb6fefb120a94284ca0f7f37263ecba560ba1886396669a5c420bfa93"
+dependencies = [
+ "serde_json",
+ "yew 0.21.0",
+]
+
+[[package]]
 name = "yew-macro"
 version = "0.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2141,6 +2151,7 @@ dependencies = [
  "wasm-bindgen-test",
  "web-sys",
  "yew 0.21.0",
+ "yew-i18n",
  "yew-router",
  "yewtil",
 ]

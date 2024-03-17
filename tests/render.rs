@@ -1,8 +1,7 @@
 #[cfg(test)]
-
 use wasm_bindgen_test::*;
 use yew::prelude::*;
-use yew_study::pages::{home::Home,page_not_found::PageNotFound, study::Study};
+use yew_study::pages::{home::Home, page_not_found::PageNotFound, study::Study};
 
 wasm_bindgen_test_configure!(run_in_browser);
 

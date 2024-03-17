@@ -2,6 +2,14 @@ query VocabList($awesomeId: Int!, $limit: Int!) {
   getStudyList(awesomeId: $awesomeId, limit: $limit) {
     vocabId
     vocabStudyId
-    prompt
+    firstLang
+    infinitive
+    pos
+    hint
+    numLearningWords
+    userNotes
+    correctAttempts
+    knownLangCode
+    learningLangCode
   }
 }

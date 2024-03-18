@@ -19,6 +19,7 @@ use yew_study::route::{switch, Route};
 /// - **Reusable Layout**: Encapsulates the `Switch` router within a `main` HTML element, providing
 ///   a consistent layout structure across different pages. This can be expanded to include
 ///   site-wide elements like navigation bars or footers.
+/// - **I18N Support**: Language models are loaded and usable throughout the entire component set.
 ///
 /// ## Usage:
 /// The `Main` component is used as the entry point for rendering the application's UI.
